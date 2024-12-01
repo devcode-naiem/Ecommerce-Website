@@ -116,6 +116,64 @@
             align-items: center;
             justify-content: center;
             font-size: 1rem;
+        } 
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .auth-button {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .signin-button {
+            background: #3498db;
+            color: white;
+        }
+
+        .signin-button:hover {
+            background: #2980b9;
+        }
+
+        .signup-button {
+            background: transparent;
+            color: #2c3e50;
+            border: 1px solid #3498db;
+        }
+
+        .signup-button:hover {
+            background: #f8f9fa;
+        }
+
+        .admin-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        .dropdown-section {
+            border-bottom: 1px solid #eee;
+            padding: 0.5rem 0;
+        }
+
+        .dropdown-section:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-title {
+            padding: 0.5rem 1rem;
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -131,14 +189,39 @@
                     Cart
                     <span class="cart-count">0</span>
                 </a>
-                <div class="user-menu">
+                
+                <!-- Guest View (not logged in) -->
+                <div class="auth-buttons" id="guestMenu">
+                    <a href="/signin.html" class="auth-button signin-button">Sign In</a>
+                    <a href="/signup.html" class="auth-button signup-button">Sign Up</a>
+                </div>
+
+                <!-- User Menu (logged in) -->
+                <div class="user-menu" id="userMenu" style="display: none;">
                     <div class="nav-link user-trigger">
                         <span class="profile-icon">G</span>
                         <span class="user-name">Guest</span>
+                        <span class="admin-badge" id="adminBadge" style="display: none;">Admin</span>
                     </div>
                     <div class="user-dropdown">
-                        <a href="/profile" class="dropdown-link">Profile</a>
-                        <a href="#" class="dropdown-link" id="logoutBtn">Logout</a>
+                        <!-- Regular User Section -->
+                        <div class="dropdown-section">
+                            <a href="/profile" class="dropdown-link">Profile</a>
+                            <a href="/orders" class="dropdown-link">My Orders</a>
+                        </div>
+                        
+                        <!-- Admin Section -->
+                        <div class="dropdown-section" id="adminSection" style="display: none;">
+                            <div class="dropdown-title">Admin Controls</div>
+                            <a href="/admin/monitor-checkout.html" class="dropdown-link">Monitor Checkouts</a>
+                            <a href="/admin/users.html" class="dropdown-link">Manage Users</a>
+                            <a href="/admin/addproduct.html" class="dropdown-link">Add Product</a>
+                        </div>
+
+                        <!-- Logout Section -->
+                        <div class="dropdown-section">
+                            <a href="#" class="dropdown-link" id="logoutBtn">Logout</a>
+                        </div>
                     </div>
                 </div>
             </div>

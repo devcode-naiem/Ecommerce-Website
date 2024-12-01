@@ -1,5 +1,3 @@
-// navfoot.js
-
 class NavFootManager {
     constructor() {
         // Store references to navigation elements
@@ -8,41 +6,40 @@ class NavFootManager {
         this.userName = null;
         this.userDropdown = null;
         this.profileIcon = null;
+        this.guestMenu = null;
+        this.adminSection = null;
+        this.adminBadge = null;
         
         // Initialize the navigation and footer
         this.init();
     }
 
     async init() {
-        // Insert navigation and footer
         await this.insertNavigation();
         await this.insertFooter();
-        
-        // Initialize navigation functionality
         this.initializeNavigation();
-        
-        // Setup event listeners
         this.setupEventListeners();
-        
-        // Update cart count and user info
         this.updateCartCount();
-        this.updateUserInfo();
+        this.updateUserInterface();
     }
 
     async insertNavigation() {
         const navPlaceholder = document.getElementById('navbar');
         if (navPlaceholder) {
             try {
-                const response = await fetch('/Navbar.html');
+                const response = await fetch('/navbar.html');
                 const html = await response.text();
                 navPlaceholder.innerHTML = html;
                 
                 // Store references after navigation is inserted
                 this.cartCount = document.querySelector('.cart-count');
-                this.userMenu = document.querySelector('.user-menu');
+                this.userMenu = document.getElementById('userMenu');
+                this.guestMenu = document.getElementById('guestMenu');
                 this.userName = document.querySelector('.user-name');
                 this.userDropdown = document.querySelector('.user-dropdown');
                 this.profileIcon = document.querySelector('.profile-icon');
+                this.adminSection = document.getElementById('adminSection');
+                this.adminBadge = document.getElementById('adminBadge');
             } catch (error) {
                 console.error('Failed to load navigation:', error);
             }
@@ -53,7 +50,7 @@ class NavFootManager {
         const footerPlaceholder = document.getElementById('footer');
         if (footerPlaceholder) {
             try {
-                const response = await fetch('/Footer.html');
+                const response = await fetch('/footer.html');
                 const html = await response.text();
                 footerPlaceholder.innerHTML = html;
             } catch (error) {
@@ -63,20 +60,17 @@ class NavFootManager {
     }
 
     initializeNavigation() {
-        // Initialize user dropdown functionality
         if (this.userMenu) {
             this.userMenu.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.userDropdown.classList.toggle('active');
             });
 
-            // Close dropdown when clicking outside
             document.addEventListener('click', () => {
                 this.userDropdown.classList.remove('active');
             });
         }
 
-        // Initialize logout functionality
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (e) => {
@@ -87,14 +81,12 @@ class NavFootManager {
     }
 
     setupEventListeners() {
-        // Listen for cart updates
         window.addEventListener('cartUpdated', () => {
             this.updateCartCount();
         });
 
-        // Listen for user updates
         window.addEventListener('userUpdated', () => {
-            this.updateUserInfo();
+            this.updateUserInterface();
         });
     }
 
@@ -107,45 +99,41 @@ class NavFootManager {
         }
     }
 
-    updateUserInfo() {
-        if (this.userName && this.profileIcon) {
-            const userData = JSON.parse(sessionStorage.getItem('userData'));
-            
-            if (userData) {
-                // User is logged in
-                this.userName.textContent = userData.name;
-                this.profileIcon.textContent = userData.name.charAt(0).toUpperCase();
-                this.userMenu.style.display = 'block';
-                
-                // Show profile-related links
-                const authLinks = document.querySelectorAll('.auth-link');
-                authLinks.forEach(link => link.style.display = 'none');
+    updateUserInterface() {
+        const userData = JSON.parse(sessionStorage.getItem('userData'));
+        
+        if (userData) {
+            // User is logged in
+            this.guestMenu.style.display = 'none';
+            this.userMenu.style.display = 'flex';
+            this.userName.textContent = userData.name;
+            this.profileIcon.textContent = userData.name.charAt(0).toUpperCase();
+
+            // Check if user is admin
+            if (userData.role === 'admin') {
+                this.adminSection.style.display = 'block';
+                this.adminBadge.style.display = 'inline-block';
             } else {
-                // User is not logged in
-                this.userName.textContent = 'Guest';
-                this.profileIcon.textContent = 'G';
-                this.userMenu.style.display = 'none';
-                
-                // Show auth links
-                const authLinks = document.querySelectorAll('.auth-link');
-                authLinks.forEach(link => link.style.display = 'block');
+                this.adminSection.style.display = 'none';
+                this.adminBadge.style.display = 'none';
             }
+        } else {
+            // User is not logged in
+            this.guestMenu.style.display = 'flex';
+            this.userMenu.style.display = 'none';
         }
     }
 
     async handleLogout() {
         try {
-            // Clear local storage
             localStorage.removeItem('userToken');
             sessionStorage.removeItem('userData');
             
-            // Call logout API
             await fetch('http://localhost:3000/api/auth/logout', {
                 method: 'POST',
                 credentials: 'include'
             });
             
-            // Redirect to home page
             window.location.href = '/';
         } catch (error) {
             console.error('Logout failed:', error);
@@ -157,6 +145,3 @@ class NavFootManager {
 document.addEventListener('DOMContentLoaded', () => {
     new NavFootManager();
 });
-
-// Export for use in other scripts if needed
-export default NavFootManager;

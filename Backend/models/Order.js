@@ -162,6 +162,65 @@ class Order {
             connection.release();
         }
     }
+
+    static async getOrderDetails(orderId) {
+        const connection = await pool.getConnection();
+        
+        try {
+            // Get main order details with user information
+            const [orderDetails] = await connection.execute(
+                `SELECT 
+                    o.id,
+                    o.transaction_id,
+                    o.full_name,
+                    o.address,
+                    o.city,
+                    o.state,
+                    o.zip_code,
+                    o.bkash_number,
+                    o.total_amount,
+                    o.status,
+                    o.created_at,
+                    u.email as user_email,
+                    u.phone as user_phone
+                FROM orders o
+                JOIN users u ON o.user_id = u.id
+                WHERE o.id = ?`,
+                [orderId]
+            );
+
+            if (!orderDetails.length) {
+                throw new Error('Order not found');
+            }
+
+            // Get ordered products details
+            const [orderItems] = await connection.execute(
+                `SELECT 
+                    oi.product_id,
+                    oi.quantity,
+                    oi.price_at_time,
+                    oi.total_price,
+                    p.name as product_name,
+                    p.authors,
+                    p.image_url
+                FROM order_items oi
+                JOIN products p ON oi.product_id = p.id
+                WHERE oi.order_id = ?`,
+                [orderId]
+            );
+
+            return {
+                orderInfo: orderDetails[0],
+                orderItems
+            };
+
+        } catch (error) {
+            console.error('Error fetching order details:', error);
+            throw error;
+        } finally {
+            connection.release();
+        }
+    }
 }
 
 module.exports = Order;

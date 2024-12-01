@@ -3,9 +3,15 @@ const AdminController = require("../controllers/adminController");
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 
 const AdminOrderController = require("../controllers/adminOrderController");
-const { getOrdersValidationRules } = require("../validators/adminValidator");
+const {
+  getOrdersValidationRules,
+  orderDetailsValidation,
+} = require("../validators/adminValidator");
 
 const router = express.Router();
+
+console.log('Controller methods:', Object.getOwnPropertyNames(AdminOrderController));
+
 
 // Public admin routes
 router.post("/login", AdminController.login);
@@ -26,6 +32,15 @@ router.get(
   adminMiddleware,
   getOrdersValidationRules,
   AdminOrderController.getAllOrders
+);
+
+// Add this new route along with existing routes
+router.get(
+  "/checkout/:id",
+  authMiddleware,
+  adminMiddleware,
+  ...orderDetailsValidation,
+  AdminOrderController.getOrderDetails
 );
 
 module.exports = router;

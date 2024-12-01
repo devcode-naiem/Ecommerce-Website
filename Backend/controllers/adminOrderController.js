@@ -58,6 +58,77 @@ class AdminOrderController {
             });
         }
     }
+
+    static async getOrderDetails(req, res) {
+        try {
+            const orderId = parseInt(req.params.id);
+            
+            // Get detailed order information
+            const result = await Order.getOrderDetails(orderId);
+            
+            // Format the data for response
+            const formattedResponse = {
+                orderDetails: {
+                    orderId: result.orderInfo.id,
+                    transactionId: result.orderInfo.transaction_id,
+                    orderDate: result.orderInfo.created_at,
+                    status: result.orderInfo.status,
+                    customerInfo: {
+                        name: result.orderInfo.full_name,
+                        email: result.orderInfo.user_email,
+                        phone: result.orderInfo.user_phone,
+                        shippingAddress: {
+                            address: result.orderInfo.address,
+                            city: result.orderInfo.city,
+                            state: result.orderInfo.state,
+                            zipCode: result.orderInfo.zip_code
+                        }
+                    },
+                    paymentInfo: {
+                        bkashNumber: result.orderInfo.bkash_number,
+                        transactionId: result.orderInfo.transaction_id,
+                        totalAmount: parseFloat(result.orderInfo.total_amount)
+                    }
+                },
+                products: result.orderItems.map(item => ({
+                    productId: item.product_id,
+                    name: item.product_name,
+                    authors: item.authors,
+                    imageUrl: item.image_url,
+                    quantity: item.quantity,
+                    pricePerUnit: parseFloat(item.price_at_time),
+                    totalPrice: parseFloat(item.total_price)
+                })),
+                summary: {
+                    totalItems: result.orderItems.reduce((sum, item) => sum + item.quantity, 0),
+                    subTotal: result.orderItems.reduce((sum, item) => sum + parseFloat(item.total_price), 0),
+                    grossTotal: parseFloat(result.orderInfo.total_amount)
+                }
+            };
+
+            res.json({
+                success: true,
+                message: 'Order details retrieved successfully',
+                data: formattedResponse
+            });
+
+        } catch (error) {
+            console.error('Error in getOrderDetails:', error);
+
+            if (error.message === 'Order not found') {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Order not found'
+                });
+            }
+
+            res.status(500).json({
+                success: false,
+                message: 'Failed to fetch order details',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
+        }
+    }
 }
 
 module.exports = AdminOrderController;

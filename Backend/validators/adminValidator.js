@@ -1,4 +1,4 @@
-const { query, validationResult } = require('express-validator');
+const { query,param, validationResult } = require('express-validator');
 
 const getOrdersValidationRules = [
     query('page')
@@ -27,6 +27,26 @@ const getOrdersValidationRules = [
     }
 ];
 
+const orderDetailsValidation = [
+    param('id')
+        .isInt({ min: 1 })
+        .withMessage('Invalid order ID'),
+
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid order ID',
+                errors: errors.array()
+            });
+        }
+        next();
+    }
+];
+
+
 module.exports = {
-    getOrdersValidationRules
+    getOrdersValidationRules,
+    orderDetailsValidation
 };

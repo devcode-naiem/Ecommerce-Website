@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details | Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding-top: 80px;
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header Section */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .back-button {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            color: #2c3e50;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: #f8f9fa;
+            border-color: #3498db;
+            color: #3498db;
+        }
+
+        /* Order Status */
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .status-pending {
+            background: #fef9e7;
+            color: #927608;
+        }
+
+        /* Grid Layout */
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Info Cards */
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .item-label {
+            color: #7f8c8d;
+        }
+
+        .item-value {
+            font-weight: 500;
+        }
+
+        /* Products Table */
+        .products-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .products-table th,
+        .products-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .products-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .product-image {
+            width: 60px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        /* Summary Section */
+        .order-summary {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary-total {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding-top: 1rem;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 4rem;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation placeholder -->
+    <div id="navbar"></div>
+
+    <div class="container">
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading order details...</p>
+        </div>
+
+        <div id="orderDetails" style="display: none;"></div>
+    </div>
+
+    <!-- Footer placeholder -->
+    <div id="footer"></div>
+
+    <!-- Navigation and footer manager -->
+    <script type="module" src="./../navfoot.js"></script>
+
+    <script>
+        class CheckoutDetails {
+            constructor() {
+                this.orderId = this.getOrderIdFromUrl();
+                this.orderDetails = null;
+                this.loading = document.getElementById('loading');
+                this.orderDetailsContainer = document.getElementById('orderDetails');
+                this.init();
+            }
+
+            getOrderIdFromUrl() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const queryString = window.location.search;
+                const value = queryString.substring(1); // or queryString.slice(1)
+
+                return value
+            }
+
+            async init() {
+                if (!this.isAdmin()) {
+                    window.location.href = '/';
+                    return;
+                }
+
+                try {
+                    await this.loadOrderDetails();
+                } catch (error) {
+                    console.error('Failed to load order details:', error);
+                }
+            }
+
+            isAdmin() {
+                try {
+                    const userData = JSON.parse(sessionStorage.getItem('userData'));
+                    return userData && userData.role === 'admin';
+                } catch (error) {
+                    return false;
+                }
+            }
+
+            async loadOrderDetails() {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/admin/checkout/${this.orderId}`, {
+                        credentials: 'include'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to load order details');
+                    }
+
+                    const data = await response.json();
+                    this.orderDetails = data.data;
+                    this.render();
+                } finally {
+                    this.loading.style.display = 'none';
+                }
+            }
+
+            formatDate(dateString) {
+                return new Date(dateString).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            render() {
+                const { orderDetails, products, summary } = this.orderDetails;
+
+                this.orderDetailsContainer.innerHTML = `
+                    <div class="page-header">
+                        <h1>Order #${orderDetails.orderId}</h1>
+                        <a href="/admin/monitor-checkout.html" class="back-button">
+                            ← Back to Orders
+                        </a>
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="info-card">
+                            <h2 class="card-header">Order Information</h2>
+                            <div class="info-list">
+                                <div class="info-item">
+                                    <span class="item-label">Order Date</span>
+                                    <span class="item-value">${this.formatDate(orderDetails.orderDate)}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="item-label">Status</span>
+                                    <span class="status-badge status-${orderDetails.status}">${orderDetails.status}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="item-label">Transaction ID</span>
+                                    <span class="item-value">${orderDetails.transactionId}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <h2 class="card-header">Customer Information</h2>
+                            <div class="info-list">
+                                <div class="info-item">
+                                    <span class="item-label">Name</span>
+                                    <span class="item-value">${orderDetails.customerInfo.name}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="item-label">Email</span>
+                                    <span class="item-value">${orderDetails.customerInfo.email}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="item-label">Phone</span>
+                                    <span class="item-value">${orderDetails.customerInfo.phone}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <h2 class="card-header">Shipping Address</h2>
+                            <div class="info-list">
+                                <div class="info-item">
+                                    <span class="item-label">Address</span>
+                                    <span class="item-value">${orderDetails.customerInfo.shippingAddress.address}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="item-label">City</span>
+                                    <span class="item-value">${orderDetails.customerInfo.shippingAddress.city}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="item-label">State</span>
+                                    <span class="item-value">${orderDetails.customerInfo.shippingAddress.state}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="item-label">ZIP Code</span>
+                                    <span class="item-value">${orderDetails.customerInfo.shippingAddress.zipCode}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-card">
+                            <h2 class="card-header">Payment Information</h2>
+                            <div class="info-list">
+                                <div class="info-item">
+                                    <span class="item-label">bKash Number</span>
+                                    <span class="item-value">${orderDetails.paymentInfo.bkashNumber}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="item-label">Transaction ID</span>
+                                    <span class="item-value">${orderDetails.paymentInfo.transactionId}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="item-label">Total Amount</span>
+                                    <span class="item-value">$${orderDetails.paymentInfo.totalAmount.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="products-section">
+                        <h2 class="card-header">Ordered Products</h2>
+                        <table class="products-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Author</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${products.map(product => `
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                                <img src="${product.imageUrl}" alt="${product.name}" class="product-image">
+                                                <span>${product.name}</span>
+                                            </div>
+                                        </td>
+                                        <td>${product.authors}</td>
+                                        <td>${product.quantity}</td>
+                                        <td>$${product.pricePerUnit.toFixed(2)}</td>
+                                        <td>$${product.totalPrice.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="order-summary">
+                        <h2 class="card-header">Order Summary</h2>
+                        <div class="summary-item">
+                            <span>Total Items</span>
+                            <span>${summary.totalItems}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Subtotal</span>
+                            <span>$${summary.subTotal.toFixed(2)}</span>
+                        </div>
+                        <div class="summary-item summary-total">
+                            <span>Total Amount</span>
+                            <span>$${summary.grossTotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                `;
+
+                this.orderDetailsContainer.style.display = 'block';
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            new CheckoutDetails();
+        });
+    </script>
+</body>
+</html>
