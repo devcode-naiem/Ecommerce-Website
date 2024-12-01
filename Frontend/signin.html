@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | Your E-commerce Store</title>
+    <style>
+        /* We use modern CSS reset and base styles for consistent rendering */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Creating an appealing gradient background */
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        /* Container with glass-morphism effect */
+        .signin-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 420px;
+        }
+
+        /* Welcoming header section */
+        .signin-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .signin-header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .signin-header p {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        /* Form group with modern styling */
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Input fields with smooth transitions */
+        .form-group input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* Remember me checkbox styling */
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .remember-me input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+
+        /* Submit button with loading state */
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            background: #2980b9;
+        }
+
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        /* Loading spinner animation */
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Alert message styling */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .alert-error {
+            background: #fde8e8;
+            color: #c81e1e;
+            border: 1px solid #fbd5d5;
+        }
+
+        /* Signup link section */
+        .signup-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #7f8c8d;
+        }
+
+        .signup-link a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="signin-container">
+        <div class="signin-header">
+            <h1>Welcome Back</h1>
+            <p>Sign in to continue shopping</p>
+        </div>
+
+        <div class="alert alert-error" id="errorAlert"></div>
+
+        <form id="signinForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    required 
+                    placeholder="Enter your email"
+                    autocomplete="email"
+                >
+                <div class="error-message" id="emailError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                >
+                <div class="error-message" id="passwordError"></div>
+            </div>
+
+            <div class="remember-me">
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Keep me signed in</label>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <span>Sign In</span>
+                <div class="loading-spinner" id="loadingSpinner"></div>
+            </button>
+        </form>
+
+        <div class="signup-link">
+            Don't have an account? <a href="/signup.html">Sign Up</a>
+        </div>
+    </div>
+
+    <script>
+        // Getting DOM elements for manipulation
+        const form = document.getElementById('signinForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorAlert = document.getElementById('errorAlert');
+        const rememberMe = document.getElementById('remember');
+
+        // Helper function to show error alerts
+        function showAlert(message) {
+            errorAlert.textContent = message;
+            errorAlert.style.display = 'block';
+            setTimeout(() => {
+                errorAlert.style.display = 'none';
+            }, 5000);
+        }
+
+        // Helper function to show field-specific errors
+        function showError(inputElement, message) {
+            const errorElement = document.getElementById(`${inputElement.id}Error`);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            inputElement.style.borderColor = '#e74c3c';
+        }
+
+        // Helper function to clear field-specific errors
+        function clearError(inputElement) {
+            const errorElement = document.getElementById(`${inputElement.id}Error`);
+            errorElement.style.display = 'none';
+            inputElement.style.borderColor = '#e0e0e0';
+        }
+
+        // Function to store user data securely
+        function storeUserData(userData, token) {
+            // Store token in localStorage for persistent sessions if remember me is checked
+            if (rememberMe.checked) {
+                localStorage.setItem('userToken', token);
+            } else {
+                sessionStorage.setItem('userToken', token);
+            }
+
+            // Store user data in sessionStorage (cleared when browser is closed)
+            sessionStorage.setItem('userData', JSON.stringify(userData));
+        }
+
+        // Function to validate email format
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // Form submission handler
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Reset previous errors
+            clearError(emailInput);
+            clearError(passwordInput);
+            
+            // Get form values
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            
+            // Validate email format
+            if (!validateEmail(email)) {
+                showError(emailInput, 'Please enter a valid email address');
+                return;
+            }
+            
+            // Validate password
+            if (password.length < 6) {
+                showError(passwordInput, 'Password must be at least 6 characters');
+                return;
+            }
+
+            // Show loading state
+            submitBtn.disabled = true;
+            loadingSpinner.style.display = 'block';
+
+            try {
+                // Send signin request
+                const response = await fetch('http://localhost:3000/api/auth/signin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include', // Important for handling cookies
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Invalid email or password');
+                }
+
+                // Store user data and token
+                storeUserData(data.data.user, data.data.token);
+
+                // Redirect to home page
+                window.location.href = '/index.html';
+
+            } catch (error) {
+                showAlert(error.message);
+                submitBtn.disabled = false;
+                loadingSpinner.style.display = 'none';
+            }
+        });
+
+        // Real-time validation
+        emailInput.addEventListener('input', () => {
+            if (validateEmail(emailInput.value.trim())) {
+                clearError(emailInput);
+            }
+        });
+
+        passwordInput.addEventListener('input', () => {
+            if (passwordInput.value.length >= 6) {
+                clearError(passwordInput);
+            }
+        });
+
+        // Check for existing session on page load
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
+            if (token) {
+                // Verify token validity with backend
+                fetch('http://localhost:3000/api/auth/verify-token', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '/index.html';
+                    } else {
+                        // Clear invalid token
+                        localStorage.removeItem('userToken');
+                        sessionStorage.removeItem('userToken');
+                    }
+                })
+                .catch(() => {
+                    // Clear token on error
+                    localStorage.removeItem('userToken');
+                    sessionStorage.removeItem('userToken');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | Your E-commerce Store</title>
+    <style>
+        /* Base styles and reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .signup-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .signup-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .signup-header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .signup-header p {
+            color: #7f8c8d;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-group .error-message {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .password-requirements {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 0.5rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            background: #2980b9;
+        }
+
+        .submit-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .alert-error {
+            background: #fde8e8;
+            color: #c81e1e;
+            border: 1px solid #fbd5d5;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #7f8c8d;
+        }
+
+        .login-link a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Password strength indicator */
+        .password-strength {
+            height: 4px;
+            background: #e0e0e0;
+            margin-top: 0.5rem;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .strength-meter {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .strength-weak { background-color: #e74c3c; width: 33.33%; }
+        .strength-medium { background-color: #f1c40f; width: 66.66%; }
+        .strength-strong { background-color: #2ecc71; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <div class="signup-header">
+            <h1>Create Account</h1>
+            <p>Join our community and start shopping</p>
+        </div>
+
+        <div class="alert alert-error" id="errorAlert"></div>
+
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    required 
+                    placeholder="Enter your full name"
+                >
+                <div class="error-message" id="nameError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    required 
+                    placeholder="Enter your email"
+                >
+                <div class="error-message" id="emailError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone" 
+                    required 
+                    placeholder="Enter your phone number"
+                >
+                <div class="error-message" id="phoneError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    placeholder="Create a password"
+                >
+                <div class="password-strength">
+                    <div class="strength-meter" id="strengthMeter"></div>
+                </div>
+                <div class="password-requirements">
+                    Password must be at least 8 characters long with letters, numbers, and special characters
+                </div>
+                <div class="error-message" id="passwordError"></div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <span>Create Account</span>
+                <div class="loading-spinner" id="loadingSpinner"></div>
+            </button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="/signin.html">Sign In</a>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const form = document.getElementById('signupForm');
+        const nameInput = document.getElementById('name');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
+        const passwordInput = document.getElementById('password');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorAlert = document.getElementById('errorAlert');
+        const strengthMeter = document.getElementById('strengthMeter');
+
+        // Validation patterns
+        const patterns = {
+            name: /^[a-zA-Z\s]{2,50}$/,
+            email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            phone: /^\d{11}$/,
+            password: /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/
+        };
+
+        // Error messages
+        const errorMessages = {
+            name: 'Please enter a valid name (2-50 characters, letters only)',
+            email: 'Please enter a valid email address',
+            phone: 'Please enter a valid 11-digit phone number',
+            password: 'Password must be at least 8 characters with letters, numbers, and special characters'
+        };
+
+        // Helper Functions
+        function showError(inputElement, message) {
+            const errorElement = document.getElementById(`${inputElement.id}Error`);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            inputElement.style.borderColor = '#e74c3c';
+        }
+
+        function clearError(inputElement) {
+            const errorElement = document.getElementById(`${inputElement.id}Error`);
+            errorElement.style.display = 'none';
+            inputElement.style.borderColor = '#e0e0e0';
+        }
+
+        function showAlert(message) {
+            errorAlert.textContent = message;
+            errorAlert.style.display = 'block';
+            setTimeout(() => {
+                errorAlert.style.display = 'none';
+            }, 5000);
+        }
+
+        function updatePasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (password.match(/[A-Za-z]/)) strength++;
+            if (password.match(/\d/)) strength++;
+            if (password.match(/[@$!%*#?&]/)) strength++;
+
+            strengthMeter.className = 'strength-meter';
+            if (strength >= 4) strengthMeter.classList.add('strength-strong');
+            else if (strength >= 3) strengthMeter.classList.add('strength-medium');
+            else if (strength >= 2) strengthMeter.classList.add('strength-weak');
+        }
+
+        // Event Listeners
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let isValid = true;
+
+            // Validate all fields
+            Object.keys(patterns).forEach(field => {
+                const input = document.getElementById(field);
+                if (!patterns[field].test(input.value)) {
+                    showError(input, errorMessages[field]);
+                    isValid = false;
+                } else {
+                    clearError(input);
+                }
+            });
+
+            if (!isValid) return;
+
+            // Prepare submission
+            submitBtn.disabled = true;
+            loadingSpinner.style.display = 'block';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: nameInput.value,
+                        email: emailInput.value,
+                        phone: phoneInput.value,
+                        password: passwordInput.value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Signup failed');
+                }
+
+                // Redirect to signin page on success
+                window.location.href = '/signin.html';
+
+            } catch (error) {
+                showAlert(error.message);
+                submitBtn.disabled = false;
+                loadingSpinner.style.display = 'none';
+            }
+        });
+
+        // Real-time password strength indicator
+        passwordInput.addEventListener('input', (e) => {
+            updatePasswordStrength(e.target.value);
+        });
+
+        // Real-time validation for each field
+        Object.keys(patterns).forEach(field => {
+            const input = document.getElementById(field);
+            input.addEventListener('input', () => {
+                if (patterns[field].test(input.value)) {
+                    clearError(input);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
