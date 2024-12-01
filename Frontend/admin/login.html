@@ -260,9 +260,12 @@
                     throw new Error(data.message || 'Login failed');
                 }
 
+                alert("Ok")
                 // Store admin data in localStorage
-                localStorage.setItem('adminData', JSON.stringify(data.data.admin));
-                localStorage.setItem('adminToken', data.data.token);
+                sessionStorage.removeItem('userData');
+                sessionStorage.removeItem('userToken');
+                sessionStorage.setItem('userData', JSON.stringify(data.data.admin));
+                sessionStorage.setItem('userToken', data.data.token);
 
                 showAlert('success', 'Login successful! Redirecting...');
 

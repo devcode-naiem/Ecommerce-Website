@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation | BookStore</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding-top: 80px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .confirmation-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #d4edda;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            color: #28a745;
+        }
+
+        .confirmation-title {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .confirmation-message {
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .order-details {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .detail-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .home-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .home-link:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation placeholder -->
+    <div id="navbar"></div>
+
+    <div class="container">
+        <div class="confirmation-card">
+            <div class="success-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            
+            <h1 class="confirmation-title">Order Confirmed!</h1>
+            <p class="confirmation-message">
+                Thank you for your order. We'll start processing it right away and keep you updated on its status.
+            </p>
+
+            <div class="order-details">
+                <div class="detail-item">
+                    <span class="detail-label">Order ID</span>
+                    <span class="detail-value" id="orderId"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Total Amount</span>
+                    <span class="detail-value" id="totalAmount"></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Status</span>
+                    <span id="orderStatus"></span>
+                </div>
+            </div>
+
+            <a href="/" class="home-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Return to Homepage
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer placeholder -->
+    <div id="footer"></div>
+
+    <!-- Navigation and footer manager -->
+    <script type="module" src="/js/navfoot.js"></script>
+
+    <script>
+        class OrderConfirmation {
+            constructor() {
+                this.orderDetails = null;
+                this.init();
+            }
+
+            init() {
+                this.loadOrderDetails();
+                this.renderOrderDetails();
+            }
+
+            loadOrderDetails() {
+                try {
+                    const checkoutData = localStorage.getItem('checkout');
+                    if (checkoutData) {
+                        this.orderDetails = JSON.parse(checkoutData);
+                        // Clear the checkout data after loading
+                        localStorage.removeItem('checkout');
+                    }
+                } catch (error) {
+                    console.error('Error loading order details:', error);
+                }
+            }
+
+            renderOrderDetails() {
+                if (!this.orderDetails) {
+                    window.location.href = '/';
+                    return;
+                }
+
+                // Update order ID
+                const orderIdElement = document.getElementById('orderId');
+                orderIdElement.textContent = `#${this.orderDetails.orderId}`;
+
+                // Update total amount
+                const totalAmountElement = document.getElementById('totalAmount');
+                totalAmountElement.textContent = `$${this.orderDetails.totalAmount.toFixed(2)}`;
+
+                // Update order status
+                const orderStatusElement = document.getElementById('orderStatus');
+                orderStatusElement.innerHTML = `
+                    <span class="status-badge status-${this.orderDetails.status.toLowerCase()}">
+                        ${this.orderDetails.status}
+                    </span>
+                `;
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            new OrderConfirmation();
+        });
+    </script>
+</body>
+</html>

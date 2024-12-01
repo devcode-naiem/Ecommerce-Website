@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart | BookStore</title>
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding-top: 80px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Cart layout */
+        .cart-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .cart-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cart items section */
+        .cart-items {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .cart-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .cart-header h1 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+
+        /* Cart item styling */
+        .cart-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .item-image {
+            width: 100px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .item-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .item-name {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            text-decoration: none;
+        }
+
+        .item-price {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .item-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 1rem;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quantity-btn:hover {
+            background: #f8f9fa;
+        }
+
+        .quantity-input {
+            width: 50px;
+            height: 32px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .remove-item {
+            color: #e74c3c;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+        }
+
+        .remove-item:hover {
+            text-decoration: underline;
+        }
+
+        /* Cart summary */
+        .cart-summary {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .summary-header {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .summary-total {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.3s;
+        }
+
+        .checkout-btn:hover {
+            background: #2980b9;
+        }
+
+        .checkout-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        /* Empty cart state */
+        .empty-cart {
+            text-align: center;
+            padding: 3rem;
+            color: #7f8c8d;
+        }
+
+        .empty-cart p {
+            margin-bottom: 1rem;
+        }
+
+        .continue-shopping {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .continue-shopping:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation placeholder -->
+    <div id="navbar"></div>
+
+    <div class="container">
+        <div id="cartContainer" class="cart-container">
+            <!-- Cart content will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <!-- Footer placeholder -->
+    <div id="footer"></div>
+
+    <!-- Navigation and footer manager -->
+    <script type="module" src="/js/navfoot.js"></script>
+
+    <script>
+        class CartManager {
+            constructor() {
+                this.cartContainer = document.getElementById('cartContainer');
+                this.cartItems = [];
+                this.init();
+            }
+
+            init() {
+                this.loadCartItems();
+                this.render();
+            }
+
+            loadCartItems() {
+                try {
+                    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                    // Group items by productId and sum quantities
+                    const groupedCart = cart.reduce((acc, item) => {
+                        const existing = acc.find(i => i.productId === item.productId);
+                        if (existing) {
+                            existing.quantity += item.quantity;
+                        } else {
+                            acc.push({ ...item });
+                        }
+                        return acc;
+                    }, []);
+                    this.cartItems = groupedCart;
+                } catch (error) {
+                    console.error('Error loading cart:', error);
+                    this.cartItems = [];
+                }
+            }
+
+            calculateTotal() {
+                return this.cartItems.reduce((total, item) => {
+                    return total + (item.price * item.quantity);
+                }, 0);
+            }
+
+            updateCart() {
+                localStorage.setItem('cart', JSON.stringify(this.cartItems));
+                localStorage.setItem('checkout', JSON.stringify({
+                    items: this.cartItems,
+                    total: this.calculateTotal()
+                }));
+                window.dispatchEvent(new Event('cartUpdated'));
+                this.render();
+            }
+
+            updateQuantity(productId, newQuantity) {
+                const item = this.cartItems.find(item => item.productId === productId);
+                if (item) {
+                    item.quantity = Math.max(1, newQuantity);
+                    this.updateCart();
+                }
+            }
+
+            removeItem(productId) {
+                this.cartItems = this.cartItems.filter(item => item.productId !== productId);
+                this.updateCart();
+            }
+
+            render() {
+                if (this.cartItems.length === 0) {
+                    this.renderEmptyCart();
+                    return;
+                }
+
+                const total = this.calculateTotal();
+
+                this.cartContainer.innerHTML = `
+                    <div class="cart-items">
+                        <div class="cart-header">
+                            <h1>Shopping Cart (${this.cartItems.length} items)</h1>
+                        </div>
+                        ${this.cartItems.map(item => this.renderCartItem(item)).join('')}
+                    </div>
+                    <div class="cart-summary">
+                        <h2 class="summary-header">Order Summary</h2>
+                        <div class="summary-item">
+                            <span>Subtotal</span>
+                            <span>$${total.toFixed(2)}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Shipping</span>
+                            <span>Free</span>
+                        </div>
+                        <div class="summary-total">
+                            <span>Total</span>
+                            <span>$${total.toFixed(2)}</span>
+                        </div>
+                        <button class="checkout-btn" onclick="window.location.href='/checkout.html'">
+                            Proceed to Checkout
+                        </button>
+                    </div>
+                `;
+
+                this.setupEventListeners();
+            }
+
+            renderCartItem(item) {
+                return `
+                    <div class="cart-item" data-product-id="${item.productId}">
+                        <img src="${item.image_url}" alt="${item.name}" class="item-image">
+                        <div class="item-details">
+                            <a href="/product/${item.productId}" class="item-name">${item.name}</a>
+                            <span class="item-price">$${item.price.toFixed(2)}</span>
+                        </div>
+                        <div class="item-controls">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn decrease" data-product-id="${item.productId}">-</button>
+                                <input type="number" class="quantity-input" value="${item.quantity}" 
+                                    min="1" data-product-id="${item.productId}">
+                                <button class="quantity-btn increase" data-product-id="${item.productId}">+</button>
+                            </div>
+                            <button class="remove-item" data-product-id="${item.productId}">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderEmptyCart() {
+                this.cartContainer.innerHTML = `
+                    <div class="cart-items">
+                        <div class="empty-cart">
+                            <p>Your cart is empty</p>
+                            <a href="/" class="continue-shopping">Continue Shopping</a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            setupEventListeners() {
+                // Quantity decrease buttons
+                document.querySelectorAll('.decrease').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const productId = parseInt(e.target.dataset.productId);
+                        const item = this.cartItems.find(item => item.productId === productId);
+                        if (item && item.quantity > 1) {
+                            this.updateQuantity(productId, item.quantity - 1);
+                        }
+                    });
+                });
+
+                // Quantity increase buttons
+                document.querySelectorAll('.increase').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const productId = parseInt(e.target.dataset.productId);
+                        const item = this.cartItems.find(item => item.productId === productId);
+                        if (item) {
+                            this.updateQuantity(productId, item.quantity + 1);
+                        }
+                    });
+                });
+
+                // Quantity input fields
+                document.querySelectorAll('.quantity-input').forEach(input => {
+                    input.addEventListener('change', (e) => {
+                        const productId = parseInt(e.target.dataset.productId);
+                        const newQuantity = parseInt(e.target.value);
+                        if (!isNaN(newQuantity) && newQuantity > 0) {
+                            this.updateQuantity(productId, newQuantity);
+                        } else {
+                            this.render(); // Reset invalid input
+                        }
+                    });
+                });
+
+                // Remove item buttons
+                document.querySelectorAll('.remove-item').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const productId = parseInt(e.target.dataset.productId);
+                        this.removeItem(productId);
+                    });
+                });
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            new CartManager();
+        });
+    </script>
+</body>
+</html>

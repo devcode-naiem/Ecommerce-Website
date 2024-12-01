@@ -19,10 +19,10 @@ class JWTUtil {
   static setTokenCookie(res, token, options = {}) {
     const defaultOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV !== "production",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       path: "/",
-      sameSite: "Lax", // Allows cookies for top-level navigation
+      sameSite: "none", // Allow cross-site usage
     };
 
     res.cookie("token", token, { ...defaultOptions, ...options });

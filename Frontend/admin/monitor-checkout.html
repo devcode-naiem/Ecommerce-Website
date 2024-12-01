@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkout Monitor | Admin Dashboard</title>
+    <style>
+      /* Base styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f7fa;
+        padding-top: 80px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      /* Dashboard header */
+      .dashboard-header {
+        margin-bottom: 2rem;
+      }
+
+      .dashboard-title {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+      }
+
+      /* Statistics cards */
+      .statistics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-title {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-value {
+        color: #2c3e50;
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      /* Orders table */
+      .orders-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .orders-table th,
+      .orders-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+
+      .orders-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .orders-table tbody tr:hover {
+        background: #f8f9fa;
+      }
+
+      /* Status badge */
+      .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: capitalize;
+      }
+
+      .status-pending {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .status-processing {
+        background: #cce5ff;
+        color: #004085;
+      }
+
+      .status-delivered {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      /* Pagination */
+      .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+      }
+
+      .pagination-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+        color: #2c3e50;
+        transition: all 0.3s;
+      }
+
+      .pagination-btn:hover:not(:disabled) {
+        background: #f8f9fa;
+        border-color: #3498db;
+        color: #3498db;
+      }
+
+      .pagination-btn:disabled {
+        background: #f8f9fa;
+        color: #bdc3c7;
+        cursor: not-allowed;
+      }
+
+      /* Loading state */
+      .loading {
+        text-align: center;
+        padding: 2rem;
+        color: #7f8c8d;
+      }
+
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Date formatting */
+      .date-time {
+        white-space: nowrap;
+        color: #666;
+      }
+
+      .transaction-id {
+        font-family: monospace;
+        background: #f8f9fa;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+
+      /* Add these styles for clickable rows and enhanced status colors */
+      .orders-table tbody tr {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .orders-table tbody tr:hover {
+        background: #f1f5f9;
+      }
+
+      /* Updated status badge colors */
+      .status-pending {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .status-processing {
+        background: #cce5ff;
+        color: #004085;
+      }
+
+      .status-transit {
+        background: #d1ecf1;
+        color: #0c5460;
+      }
+
+      .status-delivered {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-canceled {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      /* Update the statistics card styles */
+      .stat-card {
+        /* Previous styles remain... */
+        border-left: 4px solid #e0e0e0; /* Default border */
+        border-right: 4px solid #e0e0e0; /* Default border */
+        transition: transform 0.2s;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-2px);
+      }
+
+      /* Add specific colors for each status */
+      .stat-total {
+        border-left-color: #3498db;
+        border-right-color: #1697ee;
+        background: linear-gradient(to right, #ebf5fb, white);
+      }
+
+      .stat-pending {
+        border-left-color: #f1c40f;
+        border-right-color: #f1c40f;
+        background: linear-gradient(to right, #fef9e7, white);
+      }
+
+      .stat-processing {
+        border-left-color: #e67e22;
+        border-right-color: #e67e22;
+        background: linear-gradient(to right, #fdf2e9, white);
+      }
+
+      .stat-transit {
+          border-left-color: #9b59b6;
+          border-right-color: #9b59b6;
+          background: linear-gradient(to right, #f4ecf7, white);
+      }
+
+      .stat-delivered {
+        border-left-color: #2ecc71;
+        border-right-color: #2ecc71;
+        background: linear-gradient(to right, #eafaf1, white);
+      }
+
+      .stat-canceled {
+        border-left-color: #e74c3c;
+        border-right-color: #e74c3c;
+        background: linear-gradient(to right, #fdedec, white);
+      }
+
+      /* Update order table rows to show clickable state */
+      .orders-table tbody tr {
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .orders-table tbody tr:hover {
+        background-color: #f5f7fa;
+      }
+
+      /* Update status badges */
+      .status-pending {
+        background: #fef9e7;
+        color: #927608;
+      }
+
+      .status-processing {
+        background: #fdf2e9;
+        color: #b45309;
+      }
+
+      .status-transit {
+        background: #f4ecf7;
+        color: #6b248f;
+      }
+
+      .status-delivered {
+        background: #eafaf1;
+        color: #186a3b;
+      }
+
+      .status-canceled {
+        background: #fdedec;
+        color: #943126;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation placeholder -->
+    <div id="navbar"></div>
+
+    <div class="container">
+      <header class="dashboard-header">
+        <h1 class="dashboard-title">Checkout Monitor</h1>
+      </header>
+
+      <div id="statistics" class="statistics-grid">
+        <!-- Statistics will be dynamically inserted here -->
+      </div>
+
+      <div class="orders-container">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Transaction ID</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody">
+            <!-- Orders will be dynamically inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="pagination">
+        <!-- Pagination buttons will be dynamically inserted here -->
+      </div>
+    </div>
+
+    <!-- Footer placeholder -->
+    <div id="footer"></div>
+
+    <!-- Navigation and footer manager -->
+    <script type="module" src="./../navfoot.js"></script>
+
+    <script>
+      class CheckoutMonitor {
+        constructor() {
+          this.statisticsContainer = document.getElementById("statistics");
+          this.ordersTableBody = document.getElementById("ordersTableBody");
+          this.paginationContainer = document.getElementById("pagination");
+          this.currentPage = 1;
+          this.init();
+        }
+
+        async init() {
+          // Check if user is admin
+          if (!this.isAdmin()) {
+            window.location.href = "/";
+            return;
+          }
+
+          await this.loadData();
+        }
+
+        isAdmin() {
+          try {
+            const userData = JSON.parse(sessionStorage.getItem("userData"));
+            return userData && userData.role === "admin";
+          } catch (error) {
+            return false;
+          }
+        }
+
+        async loadData(page = 1) {
+          try {
+            const response = await fetch(
+              `http://localhost:3000/api/admin/checkout/getall?page=${page}&limit=50`,
+              {
+                credentials: "include",
+              }
+            );
+
+            if (!response.ok) {
+              if (response.status === 401) {
+                window.location.href = "/signin.html";
+                return;
+              }
+              throw new Error("Failed to load data");
+            }
+
+            const data = await response.json();
+            this.renderStatistics(data.data.statistics);
+            this.renderOrders(data.data.orders);
+            this.renderPagination(data.data.pagination);
+          } catch (error) {
+            console.error("Error loading data:", error);
+          }
+        }
+
+        renderStatistics(statistics) {
+    this.statisticsContainer.innerHTML = `
+        <div class="stat-card stat-total">
+            <div class="stat-title">Total Orders</div>
+            <div class="stat-value">${statistics.totalCheckouts}</div>
+        </div>
+        <div class="stat-card stat-pending">
+            <div class="stat-title">Pending</div>
+            <div class="stat-value">${statistics.pendingCheckouts}</div>
+        </div>
+        <div class="stat-card stat-processing">
+            <div class="stat-title">Processing</div>
+            <div class="stat-value">${statistics.processingCheckouts}</div>
+        </div>
+        <div class="stat-card stat-transit">
+            <div class="stat-title">On Transit</div>
+            <div class="stat-value">${statistics.onTransitCheckouts}</div>
+        </div>
+        <div class="stat-card stat-delivered">
+            <div class="stat-title">Delivered</div>
+            <div class="stat-value">${statistics.deliveredCheckouts}</div>
+        </div>
+        <div class="stat-card stat-canceled">
+            <div class="stat-title">Canceled</div>
+            <div class="stat-value">${statistics.canceledCheckouts}</div>
+        </div>
+    `;
+}
+
+        renderOrders(orders) {
+          this.ordersTableBody.innerHTML = orders
+            .map(
+              (order) => `
+        <tr onclick="window.location.href='/admin/checkout-details.html?${
+          order.orderId
+        }'">
+            <td><span class="order-id">${order.orderId}</span></td>
+            <td><span class="transaction-id">${order.transactionId}</span></td>
+            <td>
+                <div>${order.userName}</div>
+                <div style="color: #666; font-size: 0.9rem;">${
+                  order.userEmail
+                }</div>
+            </td>
+            <td class="date-time">${this.formatDate(order.date)}</td>
+            <td>$${order.amount.toFixed(2)}</td>
+            <td><span class="status-badge status-${order.status.toLowerCase()}">${
+                order.status
+              }</span></td>
+        </tr>
+    `
+            )
+            .join("");
+        }
+
+        renderPagination(pagination) {
+          const { currentPage, totalPages, prevPage, nextPage } = pagination;
+
+          this.paginationContainer.innerHTML = `
+                    <button 
+                        class="pagination-btn" 
+                        ${!prevPage ? "disabled" : ""} 
+                        onclick="checkoutMonitor.loadData(${prevPage})"
+                    >
+                        Previous
+                    </button>
+                    <span class="pagination-btn">
+                        Page ${currentPage} of ${totalPages}
+                    </span>
+                    <button 
+                        class="pagination-btn" 
+                        ${!nextPage ? "disabled" : ""} 
+                        onclick="checkoutMonitor.loadData(${nextPage})"
+                    >
+                        Next
+                    </button>
+                `;
+        }
+
+        formatDate(dateString) {
+          const date = new Date(dateString);
+          return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+      }
+
+      // Initialize and make globally available
+      let checkoutMonitor;
+      document.addEventListener("DOMContentLoaded", () => {
+        checkoutMonitor = new CheckoutMonitor();
+        window.checkoutMonitor = checkoutMonitor;
+      });
+    </script>
+  </body>
+</html>

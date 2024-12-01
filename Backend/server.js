@@ -7,6 +7,8 @@ const createTables = require("./config/createTables");
 const productRoutes = require("./routes/products");
 const adminRoutes = require("./routes/admin");
 const authRoutes = require("./routes/auth");
+const checkoutRoutes = require('./routes/checkout');
+
 
 const app = express();
 
@@ -36,6 +38,8 @@ createTables()
 app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
+app.use('/api/checkout', checkoutRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

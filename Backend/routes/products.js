@@ -1,6 +1,6 @@
 const express = require("express");
 const ProductController = require("../controllers/productController");
-const { productValidationRules, getProductsValidationRules } = require("../validators/productValidator");
+const { productValidationRules, getProductsValidationRules, getProductByIdValidation } = require("../validators/productValidator");
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
@@ -18,6 +18,12 @@ router.get(
     "/",
     ...getProductsValidationRules,  // Use spread operator here
     ProductController.getProducts
+);
+
+router.get(
+    "/:id",
+    ...getProductByIdValidation,
+    ProductController.getProductById
 );
 
 module.exports = router;

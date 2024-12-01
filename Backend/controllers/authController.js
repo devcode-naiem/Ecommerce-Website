@@ -18,9 +18,9 @@ class AuthController {
 
             // Set token in cookies with enhanced security options
             res.cookie('token', token, {
-                httpOnly: true, // Prevents JavaScript access
-                secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-                sameSite: 'strict', // CSRF protection
+                httpOnly: false, // Prevents JavaScript access
+                secure: process.env.NODE_ENV !== 'production', // HTTPS only in production
+                sameSite: 'none', // CSRF protection
                 maxAge: 24 * 60 * 60 * 1000, // 24 hours
                 path: '/' // Cookie available for all paths
             });

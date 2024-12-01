@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout | BookStore</title>
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding-top: 80px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Checkout layout */
+        .checkout-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 992px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Form styling */
+        .checkout-form {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* Payment section */
+        .payment-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .bkash-qr {
+            width: 200px;
+            height: 200px;
+            margin: 1rem auto;
+            display: block;
+        }
+
+        .bkash-number {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        /* Order summary */
+        .order-summary {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 100px;
+        }
+
+        .summary-title {
+            font-size: 1.25rem;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-items {
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-total {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid #eee;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 1rem;
+        }
+
+        .checkout-btn:hover {
+            background: #2980b9;
+        }
+
+        .checkout-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation placeholder -->
+    <div id="navbar"></div>
+
+    <div class="container">
+        <div class="checkout-container">
+            <div class="checkout-form">
+                <form id="checkoutForm">
+                    <div class="form-section">
+                        <h2 class="section-title">Delivery Information</h2>
+                        <div class="form-group">
+                            <label for="fullName">Full Name</label>
+                            <input type="text" id="fullName" name="fullName" required>
+                            <div class="error-message" id="fullNameError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <input type="text" id="address" name="address" required>
+                            <div class="error-message" id="addressError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="city">City</label>
+                            <input type="text" id="city" name="city" required>
+                            <div class="error-message" id="cityError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <input type="text" id="state" name="state" required>
+                            <div class="error-message" id="stateError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="zipCode">ZIP Code</label>
+                            <input type="text" id="zipCode" name="zipCode" required>
+                            <div class="error-message" id="zipCodeError"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2 class="section-title">Payment Information</h2>
+                        <div class="payment-info">
+                            <img src="/images/bkash-qr.png" alt="bKash QR Code" class="bkash-qr">
+                            <p class="bkash-number">bKash Number: 01712345678</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="bkashNumber">Your bKash Number</label>
+                            <input type="text" id="bkashNumber" name="bkashNumber" required>
+                            <div class="error-message" id="bkashNumberError"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="transactionId">Transaction ID</label>
+                            <input type="text" id="transactionId" name="transactionId" required>
+                            <div class="error-message" id="transactionIdError"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div id="orderSummary" class="order-summary">
+                <!-- Order summary will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Footer placeholder -->
+    <div id="footer"></div>
+
+    <!-- Navigation and footer manager -->
+    <script type="module" src="/js/navfoot.js"></script>
+
+    <script>
+        class CheckoutManager {
+            constructor() {
+                this.checkoutForm = document.getElementById('checkoutForm');
+                this.orderSummary = document.getElementById('orderSummary');
+                this.loadingOverlay = document.getElementById('loadingOverlay');
+                this.cartItems = [];
+                this.init();
+            }
+
+            async init() {
+                // Check if user is logged in
+                if (!this.isUserLoggedIn()) {
+                    window.location.href = '/signin.html';
+                    return;
+                }
+
+                this.loadCartItems();
+                this.renderOrderSummary();
+                this.setupEventListeners();
+            }
+
+            isUserLoggedIn() {
+                return !!sessionStorage.getItem('userData');
+            }
+
+            loadCartItems() {
+                try {
+                    this.cartItems = JSON.parse(localStorage.getItem('cart') || '[]');
+                } catch (error) {
+                    console.error('Error loading cart:', error);
+                    this.cartItems = [];
+                }
+            }
+
+            calculateTotals() {
+                return this.cartItems.reduce((acc, item) => {
+                    const productTotal = item.price * item.quantity;
+                    return {
+                        grossTotal: acc.grossTotal + productTotal,
+                        items: [...acc.items, {
+                            productId: item.productId,
+                            productQuantity: item.quantity,
+                            price: item.price,
+                            productTotalPrice: productTotal
+                        }]
+                    };
+                }, { grossTotal: 0, items: [] });
+            }
+
+            renderOrderSummary() {
+                const { grossTotal, items } = this.calculateTotals();
+
+                this.orderSummary.innerHTML = `
+                    <h2 class="summary-title">Order Summary</h2>
+                    <div class="summary-items">
+                        ${this.cartItems.map(item => `
+                            <div class="summary-item">
+                                <span>${item.name} × ${item.quantity}</span>
+                                <span>$${(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="summary-total">
+                        <span>Total</span>
+                        <span>$${grossTotal.toFixed(2)}</span>
+                    </div>
+                    <button type="button" class="checkout-btn" onclick="checkoutManager.processCheckout()">
+                        Complete Order
+                    </button>
+                `;
+            }
+
+            setupEventListeners() {
+                // Add input validation listeners
+                const inputs = this.checkoutForm.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', () => {
+                        this.validateField(input);
+                    });
+                });
+            }
+
+            validateField(input) {
+                const error = document.getElementById(`${input.id}Error`);
+                let isValid = true;
+
+                switch(input.id) {
+                    case 'bkashNumber':
+                        isValid = /^\+?88?01[3-9]\d{8}$/.test(input.value);
+                        error.textContent = isValid ? '' : 'Please enter a valid bKash number';
+                        break;
+                    case 'zipCode':
+                        isValid = /^\d{4}$/.test(input.value);
+                        error.textContent = isValid ? '' : 'Please enter a valid 4-digit ZIP code';
+                        break;
+                    default:
+                        isValid = input.value.trim().length > 0;
+                        error.textContent = isValid ? '' : 'This field is required';
+                }
+
+                error.style.display = isValid ? 'none' : 'block';
+                return isValid;
+            }
+
+            validateForm() {
+                const inputs = this.checkoutForm.querySelectorAll('input');
+                let isValid = true;
+
+                inputs.forEach(input => {
+                    if (!this.validateField(input)) {
+                        isValid = false;
+                    }
+                });
+
+                return isValid;
+            }
+
+            getFormData() {
+                const formData = new FormData(this.checkoutForm);
+                const userCheckoutDetails = {};
+                formData.forEach((value, key) => {
+                    userCheckoutDetails[key] = value;
+                });
+                return userCheckoutDetails;
+            }
+
+            showLoading(show) {
+                this.loadingOverlay.style.display = show ? 'flex' : 'none';
+            }
+
+            async processCheckout() {
+                if (!this.validateForm()) {
+                    return;
+                }
+
+                this.showLoading(true);
+
+                try {
+                    const { grossTotal, items } = this.calculateTotals();
+                    const userCheckoutDetails = this.getFormData();
+
+                    const response = await fetch('http://localhost:3000/api/checkout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            userCheckoutDetails,
+                            userCheckoutProductDetails: {
+                                products: items,
+                                grossTotalPrice: grossTotal
+                            }
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Checkout failed');
+                    }
+
+                    // Clear cart and checkout data
+                    localStorage.removeItem('cart');
+                    localStorage.removeItem('checkout');
+                    
+                    localStorage.setItem('checkout', JSON.stringify(data.data));
+                      
+
+                    // Update cart count in navbar
+                    window.dispatchEvent(new Event('cartUpdated'));
+
+                    // Redirect to order confirmation
+                    window.location.href = '/order-confirmation.html';
+
+                } catch (error) {
+                    console.error('Checkout error:', error);
+                    alert('An error occurred during checkout. Please try again.');
+                } finally {
+                    this.showLoading(false);
+                }
+            }
+        }
+
+        // Initialize checkout manager and make it globally available
+        let checkoutManager;
+        document.addEventListener('DOMContentLoaded', () => {
+            checkoutManager = new CheckoutManager();
+            window.checkoutManager = checkoutManager;
+        });
+    </script>
+</body>
+</html>

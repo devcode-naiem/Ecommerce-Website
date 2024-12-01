@@ -1,4 +1,4 @@
-const { query, body, validationResult } = require("express-validator");
+const { query, body,param, validationResult } = require("express-validator");
 
 // Helper function to check if input is array
 const isArrayInput = (input) => Array.isArray(input);
@@ -109,7 +109,26 @@ const getProductsValidationRules = [
   },
 ];
 
+const getProductByIdValidation = [
+  param('id')
+      .isInt({ min: 1 })
+      .withMessage('Product ID must be a positive integer'),
+      
+  (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+          return res.status(400).json({
+              success: false,
+              message: 'Invalid product ID',
+              errors: errors.array()
+          });
+      }
+      next();
+  }
+];
+
 module.exports = {
   productValidationRules,
   getProductsValidationRules,
+  getProductByIdValidation
 };

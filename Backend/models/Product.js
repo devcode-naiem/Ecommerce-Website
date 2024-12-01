@@ -56,7 +56,7 @@ class Product {
       // Calculate total pages
       const totalPages = Math.ceil(totalProducts / limit);
 
-       // Get products for current page
+      // Get products for current page
       const [products] = await connection.execute(
         `SELECT id, name, authors, price, description, image_url, stock 
                  FROM products 
@@ -127,6 +127,23 @@ class Product {
       throw error;
     } finally {
       connection.release();
+    }
+  }
+
+  static async getById(productId) {
+    try {
+      const [rows] = await pool.execute(
+        `SELECT id, name, authors, price, description, image_url, stock, 
+                    created_at, updated_at
+             FROM products 
+             WHERE id = ?`,
+        [productId]
+      );
+
+      return rows[0]; // Return the first (and should be only) result
+    } catch (error) {
+      console.error("Error getting product by ID:", error);
+      throw error;
     }
   }
 }

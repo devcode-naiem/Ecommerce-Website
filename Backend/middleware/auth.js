@@ -4,7 +4,7 @@ const authMiddleware = (req, res, next) => {
   try {
     // Get token from cookies
     console.log(req.cookies);
-    const token = req.cookies.auth_token;
+    const token = req.cookies.token;
 
     if (!token) {
       return res.status(401).json({
@@ -15,7 +15,7 @@ const authMiddleware = (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
+    console.log(decoded);
     // Add user data to request
     req.user = decoded;
     next();

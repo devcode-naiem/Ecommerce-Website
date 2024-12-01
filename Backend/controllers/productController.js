@@ -43,7 +43,7 @@ class ProductController {
 
       // Format product prices and add metadata
 
-      console.log(result.products)
+      // console.log(result.products)
       const formattedProducts = result.products.map((product) => ({
         ...product,
         price: parseFloat(product.price),
@@ -76,6 +76,47 @@ class ProductController {
       res.status(500).json({
         success: false,
         message: "Failed to fetch products",
+        error:
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
+    }
+  }
+
+  static async getProductById(req, res) {
+    try {
+      const productId = parseInt(req.params.id);
+
+      // Get product details
+      const product = await Product.getById(productId);
+
+      // Check if product exists
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found",
+        });
+      }
+
+      // Format the product data
+      const formattedProduct = {
+        ...product,
+        price: parseFloat(product.price),
+        isInStock: product.stock > 0,
+        createdAt: product.created_at,
+        updatedAt: product.updated_at,
+      };
+
+      // Send response
+      res.json({
+        success: true,
+        message: "Product details retrieved successfully",
+        data: formattedProduct,
+      });
+    } catch (error) {
+      console.error("Error in getProductById:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch product details",
         error:
           process.env.NODE_ENV === "development" ? error.message : undefined,
       });

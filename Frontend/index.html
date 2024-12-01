@@ -363,7 +363,7 @@
             const card = e.target.closest(".product-card");
             if (card) {
               const productId = card.dataset.productId;
-              window.location.href = `/product/${productId}`;
+              window.location.href = `/product.html?${productId}`;
             }
           });
         }
